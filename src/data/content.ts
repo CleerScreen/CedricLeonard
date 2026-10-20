@@ -1,0 +1,110 @@
+// Zentrale Inhalte. Texte hier ändern, Layout bleibt unberührt.
+
+export const person = {
+  name: 'Cedric Leonard Schwandt',
+  short: 'Cedric Schwandt',
+  role: 'Wirtschaftsingenieur (M.Sc.)',
+  claim: 'Produktion × Energie × Daten',
+  intro:
+    'Ich verbinde Fertigung, Supply Chain und Datenanalyse: von der Prozessoptimierung bei Stäubli bis zur energieoptimierten Fertigungsplanung am Fraunhofer IAPT.',
+  availability: 'Verfügbar ab Januar 2027',
+  location: 'Hamburg',
+  email: 'cedric.schwandt@gmail.com',
+  linkedin: 'https://www.linkedin.com/in/cedric-schwandt',
+  github: 'https://github.com/CleerScreen',
+};
+
+export const stats = [
+  { value: 47, prefix: '+', suffix: ' %', label: 'Effizienz in einem Montageschritt (Bachelorarbeit, Stäubli)' },
+  { value: 20, prefix: '−', suffix: ' %', label: 'manueller Aufwand in der Rechnungsprüfung (Power Automate)' },
+  { value: 21, prefix: '', suffix: '', label: 'Prozesse in BPMN 2.0 aufgenommen und analysiert' },
+  { value: 1.6, prefix: 'Ø ', suffix: '', label: 'M.Sc. Wirtschaftsingenieurwesen (bisher)', decimals: 1 },
+];
+
+export type Project = {
+  id: string;
+  kicker: string;
+  title: string;
+  org: string;
+  period: string;
+  problem: string;
+  approach: string;
+  result: string;
+  tags: string[];
+  metric?: string;
+};
+
+export const projects: Project[] = [
+  {
+    id: 'masterarbeit',
+    kicker: 'Masterarbeit · Fraunhofer IAPT',
+    title: 'Druckaufträge dann fertigen, wenn Strom günstig ist',
+    org: 'Fraunhofer IAPT, Hamburg',
+    period: '2026 – 2027',
+    problem:
+      'Additive Fertigung ist energieintensiv, Strompreise schwanken im Viertelstundentakt. Klassische Reihenfolgeregeln ignorieren das.',
+    approach:
+      'Leistungsmessungen an einem realen FFF-Drucker, daraus auftragsspezifische Lastprofile. Ein zeitindiziertes MILP als exakte Referenz und NSGA-II für realistische Instanzgrößen, gespeist mit Day-Ahead-Preisen und PV-Eigenerzeugung.',
+    result:
+      'Vergleich gegen die EDD-Regel über Energiekosten, Makespan, Verspätung und Optimalitätslücke. Ergebnisse folgen nach Veröffentlichung (CIRP CMS 2027 geplant).',
+    tags: ['Python', 'MILP', 'NSGA-II', 'pymoo', 'Demand Response'],
+    metric: 'MILP + NSGA-II',
+  },
+  {
+    id: 'staeubli',
+    kicker: 'Bachelorarbeit · Stäubli',
+    title: 'Ein Prototyp, der einen Montageschritt um 47 % beschleunigt',
+    org: 'Stäubli, Norderstedt',
+    period: '2023 – 2024',
+    problem: 'Die Kugelabfüllung in der Montage war manuell, langsam und fehleranfällig.',
+    approach:
+      'Prozessaufnahme vor Ort, Konstruktion einer neuen Vorrichtung in CAD, Prototypenbau und Test in der Linie. Parallel Materialfluss-Simulation für den Reinraum einer neuen Produktreihe.',
+    result: 'Effizienzsteigerung um 47 % im betrachteten Montageschritt. Bachelorarbeit mit 1,0 bewertet.',
+    tags: ['Konstruktion', 'CAD', 'Prozessoptimierung', 'Simulation'],
+    metric: '+47 %',
+  },
+  {
+    id: 'hanseatic',
+    kicker: 'Projektleitung · Hanseatic Consulting',
+    title: 'Rechnungsprüfung automatisiert, Order Management neu gedacht',
+    org: 'Hanseatic Consulting, Hamburg',
+    period: '2021 – heute',
+    problem: 'Kundenunternehmen mit manuellen, schlecht dokumentierten Prozessen im Order Management und der Rechnungsprüfung.',
+    approach:
+      'Interviews zur Prozessaufnahme, Modellierung von 21 Prozessen in BPMN 2.0, drei digitalisierte Soll-Prozesse. Umsetzung der Automatisierung mit Power Automate, Qualitätssicherung und Berichte an die Geschäftsführung.',
+    result: '−20 % manueller Aufwand und eine geringere Fehlerquote in der Rechnungsprüfung.',
+    tags: ['BPMN 2.0', 'Power Automate', 'Prozessanalyse', 'Projektleitung'],
+    metric: '−20 %',
+  },
+  {
+    id: 'beiersdorf',
+    kicker: 'Werkstudent · Beiersdorf',
+    title: 'Kennzahlen und Risikomanagement im Einkauf digitalisiert',
+    org: 'Beiersdorf AG, Hamburg',
+    period: '2024 – heute',
+    problem: 'Management-Reporting im Einkauf war aufwendig und das Procurement Risk Management sollte weiterentwickelt werden.',
+    approach:
+      'Analyse und Umsetzung der Weiterentwicklung des Risikomanagements, Automatisierung von Reporting-Prozessen, Aufbau von Kennzahlen-Dashboards in Power BI.',
+    result: 'Dashboards und automatisierte Reports im Einsatz im Team Digitalization & Insights.',
+    tags: ['Power BI', 'Automatisierung', 'Reporting', 'Risk Management'],
+  },
+];
+
+export type Station = { period: string; title: string; org: string; text: string; type: 'work' | 'edu' };
+
+export const timeline: Station[] = [
+  { period: '08/2026 – 01/2027', title: 'Masterand', org: 'Fraunhofer IAPT', text: 'Energieoptimierte Ablaufplanung in der additiven Fertigung.', type: 'work' },
+  { period: '10/2024 – heute', title: 'Werkstudent Procurement Excellence', org: 'Beiersdorf AG', text: 'Digitalization & Insights: Power BI, Reporting-Automatisierung, Risk Management.', type: 'work' },
+  { period: '09/2025 – 01/2026', title: 'Auslandssemester', org: 'Beijing Normal University', text: 'M.Sc. World Economy and China, Ø 91,5/100.', type: 'edu' },
+  { period: '10/2024 – 01/2027', title: 'M.Sc. Wirtschaftsingenieurwesen', org: 'Universität Hamburg · HAW · HSU', text: 'Schwerpunkt Produktentwicklung, bisher Ø 1,6.', type: 'edu' },
+  { period: '2023 – 2024', title: 'Bachelorand, Werkstudent, Praktikant', org: 'Stäubli', text: 'Montage-Prototyp (+47 %), Materialfluss-Simulation, Einkaufs-Cockpit, Bestandsprognose.', type: 'work' },
+  { period: '04/2021 – heute', title: 'Vorstand & Projektleitung', org: 'Hanseatic Consulting', text: 'Vorstand Finanzen und Recht, Projekte zu Prozessoptimierung und Automatisierung.', type: 'work' },
+  { period: '11/2020 – 04/2024', title: 'B.Sc. Wirtschaftsingenieurwesen', org: 'Universität Hamburg · HAW', text: 'Operations und Supply Chain Management, Bachelorarbeit 1,0.', type: 'edu' },
+];
+
+export const skills = [
+  { group: 'Daten & Optimierung', items: ['Python (pandas, scikit-learn)', 'MILP', 'NSGA-II / pymoo', 'Power BI', 'Statistik & ML'] },
+  { group: 'Prozesse & Automatisierung', items: ['BPMN 2.0', 'Power Automate', 'Power Apps', 'Visio', 'Six Sigma White Belt'] },
+  { group: 'Produktion & Technik', items: ['CAD (Fusion)', 'Fertigungstechnik', 'Additive Fertigung', 'Materialfluss-Simulation'] },
+  { group: 'Sprachen', items: ['Deutsch (Muttersprache)', 'Englisch (fließend)'] },
+];

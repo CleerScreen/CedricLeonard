@@ -1,0 +1,147 @@
+---
+import { person, stats, projects, timeline, skills } from '../data/content';
+---
+<!-- Kennzahlen -->
+<section class="stats-band" aria-label="Kennzahlen">
+  <div class="wrap stats">
+    {stats.map((s) => (
+      <div class="stat" data-reveal>
+        <div class="stat-val mono">
+          {s.prefix}<span data-count={s.value} data-decimals={s.decimals ?? 0}>{String(s.value).replace('.', ',')}</span>{s.suffix}
+        </div>
+        <p>{s.label}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<!-- Projekte -->
+<section class="section" id="projekte">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>Ausgewählte Projekte</p>
+    <h2 class="section-title" data-reveal>Probleme, die ich gelöst habe</h2>
+    <div class="projects">
+      {projects.map((p, i) => (
+        <article class="project" id={p.id} data-reveal>
+          <div class="p-index mono">{String(i + 1).padStart(2, '0')}</div>
+          <div class="p-main">
+            <p class="p-kicker mono">{p.kicker} · {p.period}</p>
+            <h3>{p.title}</h3>
+            <dl>
+              <div><dt>Problem</dt><dd>{p.problem}</dd></div>
+              <div><dt>Vorgehen</dt><dd>{p.approach}</dd></div>
+              <div><dt>Ergebnis</dt><dd>{p.result}</dd></div>
+            </dl>
+            <ul class="tags">{p.tags.map((t) => <li>{t}</li>)}</ul>
+          </div>
+          {p.metric && <div class="p-metric mono" aria-hidden="true">{p.metric}</div>}
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- Werdegang -->
+<section class="section alt" id="werdegang">
+  <div class="wrap two-col">
+    <div class="sticky">
+      <p class="eyebrow" data-reveal>Werdegang</p>
+      <h2 class="section-title" data-reveal>Vom Hallenboden zur Optimierung</h2>
+      <p class="lead" data-reveal>Praktische Erfahrung in Fertigung und Einkauf, methodisch vertieft in Daten und Optimierung.</p>
+      <div class="legend mono small" data-reveal><span class="k work"></span>Praxis <span class="k edu"></span>Studium</div>
+    </div>
+    <ol class="timeline">
+      <span class="tl-progress" aria-hidden="true"></span>
+      {timeline.map((t) => (
+        <li class={`tl-item ${t.type}`} data-reveal>
+          <span class="mono small muted">{t.period}</span>
+          <h3>{t.title}</h3>
+          <p class="org">{t.org}</p>
+          <p class="muted">{t.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<!-- Kenntnisse -->
+<section class="section" id="kenntnisse">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>Werkzeugkasten</p>
+    <h2 class="section-title" data-reveal>Kenntnisse</h2>
+    <div class="skills">
+      {skills.map((g) => (
+        <div class="skill-card" data-reveal>
+          <h3>{g.group}</h3>
+          <ul>{g.items.map((it) => <li>{it}</li>)}</ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- Kontakt -->
+<section class="section contact" id="kontakt">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>Kontakt</p>
+    <h2 class="contact-title" data-reveal>Lassen Sie uns<br /><em>sprechen.</em></h2>
+    <p class="lead" data-reveal>{person.availability}. Ich freue mich über Gespräche zu Rollen in Produktion, Supply Chain, Energie und Datenanalyse.</p>
+    <div class="cta" data-reveal>
+      <a class="btn btn-primary" href={`mailto:${person.email}`}>{person.email}</a>
+      <a class="btn" href={person.linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .stats-band { border-block: 1px solid var(--line); background: var(--bg-2); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .stat { padding: 36px 24px; border-left: 1px solid var(--line); }
+  .stat:first-child { border-left: 0; padding-left: 0; }
+  .stat-val { font-size: clamp(2.2rem, 4.4vw, 3.4rem); font-weight: 600; color: var(--accent); line-height: 1; }
+  .stat p { color: var(--muted); font-size: .9rem; margin-top: 12px; max-width: 26ch; }
+  @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } .stat { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); } .stat:nth-child(-n+2) { border-top: 0; } }
+
+  .projects { margin-top: 64px; display: grid; gap: 20px; }
+  .project { display: grid; grid-template-columns: 70px 1fr auto; gap: 24px; padding: clamp(24px, 4vw, 44px); border: 1px solid var(--line); border-radius: 20px; background: var(--surface); position: relative; overflow: hidden; transition: border-color .3s, transform .3s; }
+  .project:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+  .p-index { color: var(--muted); font-size: .9rem; }
+  .p-kicker { font-size: .78rem; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; }
+  .project h3 { font-size: clamp(1.4rem, 2.6vw, 2.1rem); margin: 10px 0 22px; max-width: 26ch; }
+  dl { display: grid; gap: 14px; margin: 0; max-width: 70ch; }
+  dl div { display: grid; grid-template-columns: 100px 1fr; gap: 16px; }
+  dt { font: 500 .78rem/1.9 var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  dd { margin: 0; }
+  .tags { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tags li { font: 500 .76rem var(--font-mono); border: 1px solid var(--line); padding: 5px 11px; border-radius: 999px; color: var(--muted); }
+  .p-metric { font-size: clamp(1.6rem, 3.6vw, 3rem); font-weight: 600; color: var(--accent-2); white-space: nowrap; align-self: start; }
+  @media (max-width: 760px) { .project { grid-template-columns: 1fr; gap: 8px; } .p-metric { order: -1; } dl div { grid-template-columns: 1fr; gap: 2px; } }
+
+  .alt { background: var(--bg-2); border-block: 1px solid var(--line); }
+  .two-col { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(32px, 6vw, 96px); }
+  .sticky { position: sticky; top: 110px; align-self: start; }
+  .sticky .lead { margin-top: 20px; }
+  .legend { margin-top: 26px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .8rem; }
+  .k { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 8px; }
+  .k.work { background: var(--accent); } .k.edu { background: var(--accent-2); }
+  .timeline { list-style: none; margin: 0; padding: 0 0 0 30px; position: relative; border-left: 1px solid var(--line); }
+  .tl-progress { position: absolute; left: -1px; top: 0; width: 2px; height: 100%; background: var(--accent); transform-origin: top; transform: scaleY(var(--p, 1)); }
+  .tl-item { padding: 0 0 44px; position: relative; }
+  .tl-item::before { content: ''; position: absolute; left: -37px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg-2); border: 2px solid var(--accent); }
+  .tl-item.edu::before { border-color: var(--accent-2); }
+  .tl-item h3 { font-size: 1.3rem; margin: 6px 0 4px; }
+  .org { font-weight: 600; margin-bottom: 6px; }
+  .small { font-size: .8rem; } .muted { color: var(--muted); }
+  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } .sticky { position: static; } }
+
+  .skills { margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .skill-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; background: var(--surface); }
+  .skill-card h3 { font-size: 1.1rem; margin-bottom: 14px; }
+  .skill-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; color: var(--muted); }
+  .skill-card li::before { content: '→ '; color: var(--accent); font-family: var(--font-mono); }
+
+  .contact { text-align: left; }
+  .contact-title { font-size: clamp(3rem, 10vw, 8rem); margin: 20px 0 28px; }
+  .contact-title em { font-style: normal; color: var(--accent); }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+</style>

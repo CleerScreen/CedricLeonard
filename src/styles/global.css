@@ -1,0 +1,77 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/jetbrains-mono';
+
+:root {
+  --bg: #0b0e13;
+  --bg-2: #11161e;
+  --surface: #151b24;
+  --line: #232c38;
+  --text: #e8ecf1;
+  --muted: #8b97a7;
+  --accent: #f5b83d;      /* Strompreis / Energie */
+  --accent-2: #4fd1a5;    /* günstige Fenster / PV */
+  --hot: #ef6b5b;         /* teure Spitzen */
+  --radius: 14px;
+  --max: 1180px;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-display: 'Space Grotesk Variable', var(--font-sans);
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: #f6f4ef; --bg-2: #eeebe3; --surface: #ffffff; --line: #dcd7cc;
+    --text: #14181f; --muted: #5d6673; --accent: #c98a0c; --accent-2: #138a65; --hot: #c8432f;
+    color-scheme: light;
+  }
+}
+:root[data-theme='light'] {
+  --bg: #f6f4ef; --bg-2: #eeebe3; --surface: #ffffff; --line: #dcd7cc;
+  --text: #14181f; --muted: #5d6673; --accent: #c98a0c; --accent-2: #138a65; --hot: #c8432f;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html.lenis, html.lenis body { height: auto; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 400 1.0625rem/1.65 var(--font-sans);
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.08; letter-spacing: -0.02em; margin: 0; font-weight: 600; }
+p { margin: 0; }
+::selection { background: var(--accent); color: #111; }
+
+.wrap { width: min(var(--max), 100% - 32px); margin-inline: auto; }
+.section { padding: clamp(80px, 12vw, 160px) 0; position: relative; }
+.eyebrow {
+  font: 500 0.78rem/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--accent); display: inline-flex; gap: 10px; align-items: center;
+}
+.eyebrow::before { content: ''; width: 22px; height: 1px; background: currentColor; }
+.section-title { font-size: clamp(2rem, 5vw, 3.6rem); margin-top: 18px; max-width: 18ch; }
+.lead { color: var(--muted); font-size: clamp(1.05rem, 1.6vw, 1.25rem); max-width: 60ch; }
+.mono { font-family: var(--font-mono); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 999px;
+  font-weight: 600; text-decoration: none; border: 1px solid var(--line); transition: transform .2s, background .2s, border-color .2s;
+}
+.btn:hover { transform: translateY(-2px); border-color: var(--accent); }
+.btn-primary { background: var(--accent); color: #111; border-color: var(--accent); }
+.btn-primary:hover { background: transparent; color: var(--text); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Reveal-Animationen: Startzustand nur, wenn JS + Bewegung erlaubt */
+.js-motion [data-reveal] { opacity: 0; transform: translateY(28px); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

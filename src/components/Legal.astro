@@ -1,0 +1,16 @@
+---
+interface Props { title: string }
+const { title } = Astro.props;
+---
+<section class="legal wrap">
+  <p class="eyebrow">Rechtliches</p>
+  <h1>{title}</h1>
+  <div class="body"><slot /></div>
+</section>
+<style>
+  .legal { padding: 140px 0 100px; max-width: 760px; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); margin: 18px 0 36px; }
+  .body :global(h2) { font-size: 1.25rem; margin: 34px 0 10px; }
+  .body :global(p) { margin: 0 0 12px; color: var(--muted); }
+  .body :global(.todo) { background: color-mix(in srgb, var(--hot) 18%, transparent); color: var(--text); padding: 2px 6px; border-radius: 4px; }
+</style>

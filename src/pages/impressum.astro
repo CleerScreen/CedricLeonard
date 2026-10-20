@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import Legal from '../components/Legal.astro';
+import { person } from '../data/content';
+---
+<Base title={`Impressum · ${person.name}`}>
+  <Legal title="Impressum">
+    <h2>Angaben gemäß § 5 DDG</h2>
+    <p>{person.name}<br /><span class="todo">[Straße Hausnummer]</span><br /><span class="todo">[PLZ] Hamburg</span></p>
+    <h2>Kontakt</h2>
+    <p>E-Mail: <a href={`mailto:${person.email}`}>{person.email}</a><br />Telefon: <span class="todo">[Telefonnummer]</span></p>
+    <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+    <p>{person.name}, Anschrift wie oben</p>
+  </Legal>
+</Base>
