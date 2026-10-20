@@ -6,7 +6,10 @@ export const person = {
   role: 'Wirtschaftsingenieur (M.Sc.)',
   claim: 'Produktion × Energie × Daten',
   intro:
-    'Ich verbinde Fertigung, Supply Chain und Datenanalyse: von der Prozessoptimierung bei Stäubli bis zur Planung von 3D-Druckaufträgen nach Strompreis am Fraunhofer IAPT.',
+    'Ich verbinde Produktion, Energie und Daten: von der Montage bei Stäubli bis zur Planung von 3D-Druckaufträgen nach Strompreis am Fraunhofer IAPT.',
+  seeking: 'Ab Januar 2027 suche ich meinen Einstieg in Produktion, Supply Chain, Energie oder Datenanalyse.',
+  status: 'Offen für den Berufseinstieg ab Januar 2027',
+  statusCta: 'Gespräch vereinbaren',
   availability: 'Verfügbar ab Januar 2027',
   location: 'Hamburg',
   email: 'cedric.schwandt@gmail.com',

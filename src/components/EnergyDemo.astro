@@ -1,0 +1,177 @@
+---
+
+// Synthetische Day-Ahead-Kurve (96 Viertelstunden), "Duck Curve" mit PV-Mittagstal.
+const N = 96;
+const price = Array.from({ length: N }, (_, i) => {
+  const h = i / 4;
+  const base = 95;
+  const morning = 75 * Math.exp(-((h - 8) ** 2) / 3);
+  const evening = 115 * Math.exp(-((h - 19) ** 2) / 4.5);
+  const pvDip = -85 * Math.exp(-((h - 13) ** 2) / 6);
+  const night = -18 * Math.exp(-((h - 3) ** 2) / 5);
+  const wobble = 6 * Math.sin(i * 1.7) + 4 * Math.cos(i * 0.9);
+  return Math.max(8, base + morning + evening + pvDip + night + wobble);
+});
+
+// Druckaufträge: Dauer in Viertelstunden, Leistung in kW
+const jobs = [
+  { id: 'J1', dur: 14, kw: 1.2 },
+  { id: 'J2', dur: 8, kw: 0.9 },
+  { id: 'J3', dur: 18, kw: 1.4 },
+  { id: 'J4', dur: 10, kw: 1.0 },
+];
+const cost = (start: number, j: { dur: number; kw: number }) =>
+  price.slice(start, start + j.dur).reduce((s, p) => s + p * j.kw * 0.25, 0) / 1000;
+
+// EDD-artig: alles nacheinander ab 06:00
+let t = 24;
+const edd = jobs.map((j) => { const s = t; t += j.dur; return s; });
+
+// Greedy: längste Aufträge zuerst ins günstigste freie Fenster
+const busy = new Array(N).fill(false);
+const opt: number[] = new Array(jobs.length);
+[...jobs.keys()].sort((a, b) => jobs[b].dur - jobs[a].dur).forEach((k) => {
+  let best = -1, bestC = Infinity;
+  for (let s = 0; s + jobs[k].dur <= N; s++) {
+    if (busy.slice(s, s + jobs[k].dur).some(Boolean)) continue;
+    const c = cost(s, jobs[k]);
+    if (c < bestC) { bestC = c; best = s; }
+  }
+  opt[k] = best;
+  for (let i = best; i < best + jobs[k].dur; i++) busy[i] = true;
+});
+
+const costEdd = jobs.reduce((s, j, k) => s + cost(edd[k], j), 0);
+const costOpt = jobs.reduce((s, j, k) => s + cost(opt[k], j), 0);
+const saving = Math.round((1 - costOpt / costEdd) * 100);
+
+// SVG-Geometrie
+const W = 960, H = 360, padT = 20, padB = 96;
+const max = Math.max(...price) * 1.08;
+const x = (i: number) => (i / N) * W;
+const y = (p: number) => padT + (1 - p / max) * (H - padT - padB);
+const line = price.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p).toFixed(1)}`).join(' ');
+const area = `${line} L${W},${H - padB} L0,${H - padB} Z`;
+const laneY = H - padB + 10;
+const hours = [0, 6, 12, 18, 24];
+---
+<section class="section demo" id="prinzip">
+  <div class="wrap demo-grid">
+    <div class="demo-copy">
+      <p class="eyebrow" data-reveal>Das Prinzip meiner Masterarbeit</p>
+      <h2 class="section-title" data-reveal>Drucken, wenn der Strom günstig ist</h2>
+      <p class="lead" data-reveal>3D-Drucker brauchen viel Strom, und der Strompreis schwankt über den Tag. Die Grafik zeigt dieselben vier Druckaufträge: einmal einfach nacheinander, einmal in die günstigen Stunden gelegt.</p>
+    </div>
+    <figure class="chart" data-reveal aria-labelledby="chart-cap">
+      <div class="chart-head">
+        <div class="mono small">Strompreis über 24 h · 4 Druckaufträge</div>
+        <div class="toggle" role="group" aria-label="Planungsstrategie">
+          <button type="button" data-mode="edd" aria-pressed="true">Nacheinander</button>
+          <button type="button" data-mode="opt" aria-pressed="false">Preisoptimiert</button>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} class="svg" role="img" aria-label="Strompreiskurve mit verschiebbaren Druckaufträgen">
+        <defs>
+          <linearGradient id="g-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="var(--accent)" stop-opacity=".28" />
+            <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        {hours.map((h) => (
+          <g>
+            <line x1={x(h * 4)} x2={x(h * 4)} y1={padT} y2={H - padB} class="grid" />
+            <text x={Math.min(x(h * 4) + 6, W - 66)} y={H - 6} class="tick">{String(h).padStart(2, '0')}:00</text>
+          </g>
+        ))}
+        <path d={area} fill="url(#g-area)" class="price-area" />
+        <path d={line} class="price-line" pathLength="1" />
+        <line x1="0" x2={W} y1={laneY + 21} y2={laneY + 21} class="lane" />
+        {jobs.map((j, k) => (
+          <g class="job" data-edd={x(edd[k])} data-opt={x(opt[k])} transform={`translate(${x(edd[k])} 0)`}>
+            <rect x="0" y={laneY} width={x(j.dur) - 3} height="42" rx="9" />
+            <text x="12" y={laneY + 28}>{j.id}</text>
+          </g>
+        ))}
+      </svg>
+      <div class="chart-foot">
+        <div><span class="mono small muted">Energiekosten</span><strong class="cost mono" data-edd={costEdd.toFixed(2)} data-opt={costOpt.toFixed(2)}>{costEdd.toFixed(2).replace('.', ',')} €</strong></div>
+        <div><span class="mono small muted">Ersparnis</span><strong class="save mono" data-target={saving}>0 %</strong></div>
+      </div>
+      <figcaption id="chart-cap" class="small muted">Illustration mit synthetischen Daten: das Prinzip meiner Masterarbeit, nicht ihre Ergebnisse.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  const fig = document.querySelector<HTMLElement>('.chart');
+  if (fig) {
+    const jobs = fig.querySelectorAll<SVGGElement>('.job');
+    const costEl = fig.querySelector<HTMLElement>('.cost')!;
+    const saveEl = fig.querySelector<HTMLElement>('.save')!;
+    const btns = fig.querySelectorAll<HTMLButtonElement>('[data-mode]');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fmt = (v: number) => v.toFixed(2).replace('.', ',') + ' €';
+    let mode = 'edd';
+    let auto = true;
+
+    const setMode = (m: string) => {
+      if (m === mode) return;
+      mode = m;
+      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+      fig.dataset.mode = m;
+      const d = reduce ? 0 : 1.1;
+      jobs.forEach((g, i) => gsap.to(g, { x: Number(g.dataset[m as 'edd' | 'opt']), duration: d, delay: reduce ? 0 : i * 0.08, ease: 'power3.inOut' }));
+      const c = { v: parseFloat(costEl.textContent!.replace(',', '.')) };
+      gsap.to(c, { v: Number(costEl.dataset[m as 'edd' | 'opt']), duration: d, ease: 'power2.out', onUpdate: () => (costEl.textContent = fmt(c.v)) });
+      const s = { v: parseInt(saveEl.textContent!) || 0 };
+      gsap.to(s, { v: m === 'opt' ? Number(saveEl.dataset.target) : 0, duration: d, ease: 'power2.out', onUpdate: () => (saveEl.textContent = Math.round(s.v) + ' %') });
+    };
+
+    jobs.forEach((g) => gsap.set(g, { x: Number(g.dataset.edd) }));
+    btns.forEach((b) => b.addEventListener('click', () => { auto = false; setMode(b.dataset.mode!); }));
+
+    const run = () => {
+    if (!reduce) {
+      gsap.fromTo(fig.querySelector('.price-line'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 2, ease: 'power2.inOut', delay: 0.2 });
+      gsap.from(fig.querySelector('.price-area'), { opacity: 0, duration: 1.4, delay: 0.8 });
+      gsap.from(jobs, { y: 30, opacity: 0, stagger: 0.1, duration: 0.7, delay: 1.1, ease: 'back.out(1.6)' });
+      const loop = () => { if (!auto) return; setMode(mode === 'edd' ? 'opt' : 'edd'); setTimeout(loop, 4200); };
+      setTimeout(loop, 2600);
+    }
+    };
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); run(); } }, { threshold: 0.35 });
+    io.observe(fig);
+  }
+</script>
+
+<style>
+  .demo-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .demo-copy { min-width: 0; }
+  .demo-copy .lead { margin-top: 20px; }
+  .chart { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: clamp(16px, 2.4vw, 26px); box-shadow: 0 30px 80px -40px rgba(0,0,0,.6); }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .small { font-size: .78rem; }
+  .muted { color: var(--muted); }
+  .toggle { display: inline-flex; background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .toggle button { font: 500 .78rem var(--font-mono); border: 0; background: none; color: var(--muted); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
+  .toggle button[aria-pressed='true'] { background: var(--text); color: var(--bg); }
+  .svg { width: 100%; height: auto; overflow: visible; }
+  .grid { stroke: var(--line); stroke-dasharray: 3 5; }
+  .lane { stroke: var(--line); }
+  .tick { fill: var(--muted); font: 500 21px var(--font-mono); }
+  :global(.js-motion) .price-line { stroke-dashoffset: 1; }
+  .price-line { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-linejoin: round; stroke-dasharray: 1; }
+  .job rect { fill: var(--hot); opacity: .9; transition: fill .6s; }
+  .chart[data-mode='opt'] .job rect { fill: var(--accent-2); }
+  .job text { fill: #111; font: 700 20px var(--font-mono); }
+  .chart-foot { display: flex; gap: 32px; margin: 14px 0 12px; }
+  .chart-foot div { display: grid; gap: 2px; }
+  .chart-foot strong { font-size: 1.5rem; font-weight: 600; }
+  .save { color: var(--accent-2); }
+  figcaption { border-top: 1px solid var(--line); padding-top: 10px; }
+
+  @media (max-width: 900px) {
+    .demo-grid { grid-template-columns: 1fr; }
+  }
+</style>

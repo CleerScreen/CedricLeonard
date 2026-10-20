@@ -14,10 +14,12 @@ Impressum: `src/pages/impressum.astro` (Platzhalter in eckigen Klammern ausfüll
 
 ## Veröffentlichen
 Jeder Push auf `main` baut und veröffentlicht die Seite automatisch (`.github/workflows/deploy.yml`).
-Einmalig in GitHub: Settings → Pages → Source: **GitHub Actions**.
+Pages ist eingerichtet (Source: GitHub Actions, eigene Domain cedric-leonard.de).
 
 ## Struktur
-- `src/components/Hero.astro` – Hero mit interaktiver Strompreis-/Scheduling-Grafik (synthetische Daten)
+- `src/components/Hero.astro` – Einstieg: Status-Button (Kontakt), Name wird wie im 3D-Drucker gedruckt
+- `src/components/Background.astro` – Punktraster im Hintergrund, reagiert auf den Mauszeiger
+- `src/components/EnergyDemo.astro` – interaktive Strompreis-/Scheduling-Grafik (synthetische Daten)
 - `src/components/Sections.astro` – Kennzahlen, Projekte, Werdegang, Kenntnisse, Kontakt
 - `src/scripts/motion.ts` – Scroll-Animationen (respektiert „Bewegung reduzieren“)
 - `public/CNAME` – eigene Domain

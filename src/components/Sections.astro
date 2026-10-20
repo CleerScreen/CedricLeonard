@@ -1,5 +1,6 @@
 ---
 import { person, stats, projects, timeline, skills } from '../data/content';
+import EnergyDemo from './EnergyDemo.astro';
 ---
 <!-- Kennzahlen -->
 <section class="stats-band" aria-label="Kennzahlen">
@@ -14,6 +15,8 @@ import { person, stats, projects, timeline, skills } from '../data/content';
     ))}
   </div>
 </section>
+
+<EnergyDemo />
 
 <!-- Projekte -->
 <section class="section" id="projekte">
@@ -94,7 +97,7 @@ import { person, stats, projects, timeline, skills } from '../data/content';
 </section>
 
 <style>
-  .stats-band { border-block: 1px solid var(--line); background: var(--bg-2); }
+  .stats-band { border-block: 1px solid var(--line); background: color-mix(in srgb, var(--bg-2) 86%, transparent); }
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); }
   .stat { padding: 36px 24px; border-left: 1px solid var(--line); }
   .stat:first-child { border-left: 0; padding-left: 0; }
@@ -117,7 +120,7 @@ import { person, stats, projects, timeline, skills } from '../data/content';
   .p-metric { font-size: clamp(1.6rem, 3.6vw, 3rem); font-weight: 600; color: var(--accent-2); white-space: nowrap; align-self: start; }
   @media (max-width: 760px) { .project { grid-template-columns: 1fr; gap: 8px; } .p-metric { order: -1; } dl div { grid-template-columns: 1fr; gap: 2px; } }
 
-  .alt { background: var(--bg-2); border-block: 1px solid var(--line); }
+  .alt { background: color-mix(in srgb, var(--bg-2) 86%, transparent); border-block: 1px solid var(--line); }
   .two-col { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(32px, 6vw, 96px); }
   .sticky { position: sticky; top: 110px; align-self: start; }
   .sticky .lead { margin-top: 20px; }

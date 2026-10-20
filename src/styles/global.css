@@ -2,6 +2,9 @@
 @import '@fontsource-variable/space-grotesk';
 @import '@fontsource-variable/jetbrains-mono';
 
+/* Farbe des gedruckten Namens (animierbar) */
+@property --ink { syntax: '<color>'; inherits: true; initial-value: #e8ecf1; }
+
 :root {
   --bg: #0b0e13;
   --bg-2: #11161e;
@@ -9,7 +12,7 @@
   --line: #232c38;
   --text: #e8ecf1;
   --muted: #8b97a7;
-  --accent: #f5b83d;      /* Strompreis / Energie */
+  --accent: #ff9440;      /* Energie / Akzent (Orange) */
   --accent-2: #4fd1a5;    /* günstige Fenster / PV */
   --hot: #ef6b5b;         /* teure Spitzen */
   --radius: 14px;
@@ -23,13 +26,13 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme='dark']) {
     --bg: #f6f4ef; --bg-2: #eeebe3; --surface: #ffffff; --line: #dcd7cc;
-    --text: #14181f; --muted: #5d6673; --accent: #c98a0c; --accent-2: #138a65; --hot: #c8432f;
+    --text: #14181f; --muted: #5d6673; --accent: #cf650f; --accent-2: #138a65; --hot: #c8432f;
     color-scheme: light;
   }
 }
 :root[data-theme='light'] {
   --bg: #f6f4ef; --bg-2: #eeebe3; --surface: #ffffff; --line: #dcd7cc;
-  --text: #14181f; --muted: #5d6673; --accent: #c98a0c; --accent-2: #138a65; --hot: #c8432f;
+  --text: #14181f; --muted: #5d6673; --accent: #cf650f; --accent-2: #138a65; --hot: #c8432f;
   color-scheme: light;
 }
 
@@ -42,6 +45,7 @@ body {
   -webkit-font-smoothing: antialiased; overflow-x: hidden;
 }
 img, svg { display: block; max-width: 100%; }
+main, .footer { position: relative; z-index: 1; }
 a { color: inherit; }
 h1, h2, h3 { font-family: var(--font-display); line-height: 1.08; letter-spacing: -0.02em; margin: 0; font-weight: 600; }
 p { margin: 0; }

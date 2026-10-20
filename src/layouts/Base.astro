@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { person } from '../data/content';
+import Background from '../components/Background.astro';
 
 interface Props { title?: string; description?: string; }
 const {
@@ -35,6 +36,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <a class="sr-only" href="#main">Zum Inhalt springen</a>
+    <Background />
     <header class="nav">
       <div class="wrap nav-inner">
         <a href="/" class="logo" aria-label="Startseite">

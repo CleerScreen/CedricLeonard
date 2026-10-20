@@ -1,0 +1,99 @@
+---
+// Hintergrund: Punktraster wie ein Druckbett. Punkte in der Nähe des Zeigers werden angezogen und leuchten auf.
+---
+<canvas id="bg-dots" aria-hidden="true"></canvas>
+
+<script>
+  const cv = document.getElementById('bg-dots') as HTMLCanvasElement | null;
+  const ctx = cv?.getContext('2d');
+  if (cv && ctx) {
+    const root = document.documentElement;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const STRENGTH = 1.6;
+    let W = 0, H = 0, dpr = 1;
+    type Dot = { x0: number; y0: number; x: number; y: number; vx: number; vy: number; f: number };
+    let dots: Dot[] = [];
+    let muted = [139, 151, 167], accent = [255, 148, 64], light = false;
+
+    const hex = (v: string) => {
+      let s = (v || '').trim().replace('#', '');
+      if (s.length === 3) s = s.split('').map((c) => c + c).join('');
+      const n = parseInt(s || '888888', 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+    const rgba = (c: number[], a: number) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    const readColors = () => {
+      const cs = getComputedStyle(root);
+      muted = hex(cs.getPropertyValue('--muted'));
+      accent = hex(cs.getPropertyValue('--accent'));
+      const bg = hex(cs.getPropertyValue('--bg'));
+      light = (bg[0] * 299 + bg[1] * 587 + bg[2] * 114) / 1000 > 140;
+    };
+
+    const ptr = { x: 0, y: 0, tx: 0, ty: 0, last: -1e9, inside: false };
+    const onPtr = (e: PointerEvent) => { ptr.tx = e.clientX; ptr.ty = e.clientY; ptr.last = performance.now(); ptr.inside = true; };
+    addEventListener('pointermove', onPtr, { passive: true });
+    addEventListener('pointerdown', onPtr, { passive: true });
+    document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) ptr.inside = false; });
+    let ghost = 1;
+
+    const build = () => {
+      W = innerWidth; H = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
+      cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const s = W < 600 ? 22 : 26;
+      const ox = (W % s) / 2, oy = (H % s) / 2;
+      dots = [];
+      for (let y = oy; y <= H; y += s) for (let x = ox; x <= W; x += s) dots.push({ x0: x, y0: y, x, y, vx: 0, vy: 0, f: 0 });
+      if (!ptr.tx) { ptr.tx = ptr.x = W * 0.66; ptr.ty = ptr.y = H * 0.4; }
+    };
+
+    const frame = (t: number) => {
+      if (!reduce) {
+        const idle = !ptr.inside || t - ptr.last > 2600;
+        ghost += ((idle ? 1 : 0) - ghost) * 0.03;
+        const gx = W * (0.62 + 0.26 * Math.cos(t * 0.00031)), gy = H * (0.42 + 0.2 * Math.sin(t * 0.00047));
+        const tx = ptr.tx * (1 - ghost) + gx * ghost, ty = ptr.ty * (1 - ghost) + gy * ghost;
+        ptr.x += (tx - ptr.x) * 0.16; ptr.y += (ty - ptr.y) * 0.16;
+      }
+      ctx.clearRect(0, 0, W, H);
+      const R = 150 + 90 * STRENGTH;
+      const pull = Math.min(0.78, 0.42 * STRENGTH);
+      ctx.fillStyle = rgba(muted, light ? 0.32 : 0.26);
+      ctx.beginPath();
+      const hot: Dot[] = [];
+      for (const d of dots) {
+        const dx = ptr.x - d.x0, dy = ptr.y - d.y0, dist = Math.hypot(dx, dy);
+        let f = dist < R ? 1 - dist / R : 0; f = f * f;
+        if (reduce) { d.x = d.x0 + dx * f * pull; d.y = d.y0 + dy * f * pull; }
+        else {
+          d.vx = (d.vx + (d.x0 + dx * f * pull - d.x) * 0.11) * 0.8;
+          d.vy = (d.vy + (d.y0 + dy * f * pull - d.y) * 0.11) * 0.8;
+          d.x += d.vx; d.y += d.vy;
+        }
+        d.f = f;
+        if (f > 0.02) hot.push(d); else ctx.rect(d.x - 0.9, d.y - 0.9, 1.8, 1.8);
+      }
+      ctx.fill();
+      for (const d of hot) {
+        ctx.fillStyle = rgba(accent, Math.min(1, 0.25 + d.f * 1.1));
+        ctx.beginPath(); ctx.arc(d.x, d.y, 1 + d.f * 2.6, 0, Math.PI * 2); ctx.fill();
+      }
+    };
+
+    let raf = 0;
+    const loop = (t: number) => { frame(t); raf = requestAnimationFrame(loop); };
+    const start = () => { if (!reduce && !raf) raf = requestAnimationFrame(loop); };
+    const stop = () => { cancelAnimationFrame(raf); raf = 0; };
+    const redraw = () => { if (reduce) frame(performance.now()); };
+
+    readColors(); build(); redraw(); start();
+    addEventListener('resize', () => { build(); redraw(); });
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    new MutationObserver(() => { readColors(); redraw(); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { readColors(); redraw(); });
+  }
+</script>
+
+<style>
+  #bg-dots { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+</style>

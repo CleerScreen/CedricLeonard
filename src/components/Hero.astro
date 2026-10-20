@@ -1,192 +1,129 @@
 ---
 import { person } from '../data/content';
-
-// Synthetische Day-Ahead-Kurve (96 Viertelstunden), "Duck Curve" mit PV-Mittagstal.
-const N = 96;
-const price = Array.from({ length: N }, (_, i) => {
-  const h = i / 4;
-  const base = 95;
-  const morning = 75 * Math.exp(-((h - 8) ** 2) / 3);
-  const evening = 115 * Math.exp(-((h - 19) ** 2) / 4.5);
-  const pvDip = -85 * Math.exp(-((h - 13) ** 2) / 6);
-  const night = -18 * Math.exp(-((h - 3) ** 2) / 5);
-  const wobble = 6 * Math.sin(i * 1.7) + 4 * Math.cos(i * 0.9);
-  return Math.max(8, base + morning + evening + pvDip + night + wobble);
-});
-
-// Druckaufträge: Dauer in Viertelstunden, Leistung in kW
-const jobs = [
-  { id: 'J1', dur: 14, kw: 1.2 },
-  { id: 'J2', dur: 8, kw: 0.9 },
-  { id: 'J3', dur: 18, kw: 1.4 },
-  { id: 'J4', dur: 10, kw: 1.0 },
-];
-const cost = (start: number, j: { dur: number; kw: number }) =>
-  price.slice(start, start + j.dur).reduce((s, p) => s + p * j.kw * 0.25, 0) / 1000;
-
-// EDD-artig: alles nacheinander ab 06:00
-let t = 24;
-const edd = jobs.map((j) => { const s = t; t += j.dur; return s; });
-
-// Greedy: längste Aufträge zuerst ins günstigste freie Fenster
-const busy = new Array(N).fill(false);
-const opt: number[] = new Array(jobs.length);
-[...jobs.keys()].sort((a, b) => jobs[b].dur - jobs[a].dur).forEach((k) => {
-  let best = -1, bestC = Infinity;
-  for (let s = 0; s + jobs[k].dur <= N; s++) {
-    if (busy.slice(s, s + jobs[k].dur).some(Boolean)) continue;
-    const c = cost(s, jobs[k]);
-    if (c < bestC) { bestC = c; best = s; }
-  }
-  opt[k] = best;
-  for (let i = best; i < best + jobs[k].dur; i++) busy[i] = true;
-});
-
-const costEdd = jobs.reduce((s, j, k) => s + cost(edd[k], j), 0);
-const costOpt = jobs.reduce((s, j, k) => s + cost(opt[k], j), 0);
-const saving = Math.round((1 - costOpt / costEdd) * 100);
-
-// SVG-Geometrie
-const W = 960, H = 360, padT = 20, padB = 96;
-const max = Math.max(...price) * 1.08;
-const x = (i: number) => (i / N) * W;
-const y = (p: number) => padT + (1 - p / max) * (H - padT - padB);
-const line = price.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p).toFixed(1)}`).join(' ');
-const area = `${line} L${W},${H - padB} L0,${H - padB} Z`;
-const laneY = H - padB + 10;
-const hours = [0, 6, 12, 18, 24];
+// Name in zwei Zeilen: Vornamen oben, Nachname unten (auf schmalen Bildschirmen bricht die erste Zeile um)
+const parts = person.name.split(' ');
+const lines = [parts.slice(0, -1).join(' '), parts[parts.length - 1]];
+const mail = `mailto:${person.email}?subject=${encodeURIComponent('Gespräch zum Berufseinstieg')}`;
 ---
 <section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow" data-hero>{person.role} · {person.location}</p>
-      <h1 data-hero>
-        <span class="line">Produktion</span>
-        <span class="line">× <em>Energie</em></span>
-        <span class="line">× Daten</span>
-      </h1>
-      <p class="lead" data-hero>{person.intro}</p>
-      <div class="cta" data-hero>
-        <a class="btn btn-primary" href="#projekte">Projekte ansehen</a>
-        <a class="btn" href="#kontakt">Kontakt</a>
-      </div>
-      <p class="avail mono" data-hero><span class="dot"></span>{person.availability}</p>
-    </div>
+  <div class="wrap">
+    <a class="status" href={mail} data-hero>
+      <span class="status-text"><span class="dot" aria-hidden="true"></span>{person.status}</span>
+      <span class="status-cta">{person.statusCta}</span>
+    </a>
 
-    <figure class="chart" data-hero aria-labelledby="chart-cap">
-      <div class="chart-head">
-        <div class="mono small">Strompreis über 24 h · 4 Druckaufträge</div>
-        <div class="toggle" role="group" aria-label="Planungsstrategie">
-          <button type="button" data-mode="edd" aria-pressed="true">Nacheinander</button>
-          <button type="button" data-mode="opt" aria-pressed="false">Preisoptimiert</button>
-        </div>
+    <div class="bed" id="bed">
+      <div class="name ghost" aria-hidden="true">{lines.map((l) => <span>{l}</span>)}</div>
+      <h1 class="name printed" id="name">{lines.map((l) => <span>{l}</span>)}</h1>
+      <div class="head" id="head" aria-hidden="true">
+        <svg viewBox="0 0 30 40">
+          <rect x="1" y="0" width="28" height="15" rx="3" fill="var(--surface)" stroke="var(--muted)" stroke-width="1.2" />
+          <rect x="6" y="15" width="18" height="9" rx="1.5" fill="var(--bg-2)" stroke="var(--muted)" stroke-width="1.2" />
+          <path d="M10 24 H20 L16.2 35 H13.8 Z" fill="var(--muted)" />
+          <circle class="tip" cx="15" cy="37.5" r="2.4" fill="var(--accent)" />
+        </svg>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} class="svg" role="img" aria-label="Strompreiskurve mit verschiebbaren Druckaufträgen">
-        <defs>
-          <linearGradient id="g-area" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stop-color="var(--accent)" stop-opacity=".28" />
-            <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
-          </linearGradient>
-        </defs>
-        {hours.map((h) => (
-          <g>
-            <line x1={x(h * 4)} x2={x(h * 4)} y1={padT} y2={H - padB} class="grid" />
-            <text x={Math.min(x(h * 4) + 6, W - 66)} y={H - 6} class="tick">{String(h).padStart(2, '0')}:00</text>
-          </g>
-        ))}
-        <path d={area} fill="url(#g-area)" class="price-area" />
-        <path d={line} class="price-line" pathLength="1" />
-        <line x1="0" x2={W} y1={laneY + 21} y2={laneY + 21} class="lane" />
-        {jobs.map((j, k) => (
-          <g class="job" data-edd={x(edd[k])} data-opt={x(opt[k])} transform={`translate(${x(edd[k])} 0)`}>
-            <rect x="0" y={laneY} width={x(j.dur) - 3} height="42" rx="9" />
-            <text x="12" y={laneY + 28}>{j.id}</text>
-          </g>
-        ))}
-      </svg>
-      <div class="chart-foot">
-        <div><span class="mono small muted">Energiekosten</span><strong class="cost mono" data-edd={costEdd.toFixed(2)} data-opt={costOpt.toFixed(2)}>{costEdd.toFixed(2).replace('.', ',')} €</strong></div>
-        <div><span class="mono small muted">Ersparnis</span><strong class="save mono" data-target={saving}>0 %</strong></div>
-      </div>
-      <figcaption id="chart-cap" class="small muted">Illustration mit synthetischen Daten: das Prinzip meiner Masterarbeit, nicht ihre Ergebnisse.</figcaption>
-    </figure>
+    </div>
+    <p class="readout mono" id="readout" aria-hidden="true">&nbsp;</p>
+
+    <p class="lead" data-hero><strong>{person.role} aus {person.location}.</strong> {person.intro} {person.seeking}</p>
+    <div class="cta" data-hero>
+      <a class="btn btn-primary" href="#projekte">Projekte ansehen</a>
+      <a class="btn" href="#kontakt">Kontakt aufnehmen</a>
+    </div>
   </div>
 </section>
 
 <script>
-  import { gsap } from 'gsap';
-  const fig = document.querySelector<HTMLElement>('.chart');
-  if (fig) {
-    const jobs = fig.querySelectorAll<SVGGElement>('.job');
-    const costEl = fig.querySelector<HTMLElement>('.cost')!;
-    const saveEl = fig.querySelector<HTMLElement>('.save')!;
-    const btns = fig.querySelectorAll<HTMLButtonElement>('[data-mode]');
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const fmt = (v: number) => v.toFixed(2).replace('.', ',') + ' €';
-    let mode = 'edd';
-    let auto = true;
+  // Name wird wie im 3D-Drucker Schicht für Schicht gedruckt (Schlangenlinie, von unten nach oben).
+  const bed = document.getElementById('bed');
+  const name = document.getElementById('name');
+  const head = document.getElementById('head');
+  const readout = document.getElementById('readout');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pad = (n: number) => String(n).padStart(2, '0');
 
-    const setMode = (m: string) => {
-      if (m === mode) return;
-      mode = m;
-      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-      fig.dataset.mode = m;
-      const d = reduce ? 0 : 1.1;
-      jobs.forEach((g, i) => gsap.to(g, { x: Number(g.dataset[m as 'edd' | 'opt']), duration: d, delay: reduce ? 0 : i * 0.08, ease: 'power3.inOut' }));
-      const c = { v: parseFloat(costEl.textContent!.replace(',', '.')) };
-      gsap.to(c, { v: Number(costEl.dataset[m as 'edd' | 'opt']), duration: d, ease: 'power2.out', onUpdate: () => (costEl.textContent = fmt(c.v)) });
-      const s = { v: parseInt(saveEl.textContent!) || 0 };
-      gsap.to(s, { v: m === 'opt' ? Number(saveEl.dataset.target) : 0, duration: d, ease: 'power2.out', onUpdate: () => (saveEl.textContent = Math.round(s.v) + ' %') });
-    };
-
-    jobs.forEach((g) => gsap.set(g, { x: Number(g.dataset.edd) }));
-    btns.forEach((b) => b.addEventListener('click', () => { auto = false; setMode(b.dataset.mode!); }));
-
-    if (!reduce) {
-      gsap.fromTo(fig.querySelector('.price-line'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 2, ease: 'power2.inOut', delay: 0.4 });
-      gsap.from(fig.querySelector('.price-area'), { opacity: 0, duration: 1.4, delay: 1.2 });
-      gsap.from(jobs, { y: 30, opacity: 0, stagger: 0.1, duration: 0.7, delay: 1.6, ease: 'back.out(1.6)' });
-      const loop = () => { if (!auto) return; setMode(mode === 'edd' ? 'opt' : 'edd'); setTimeout(loop, 4200); };
-      setTimeout(loop, 3400);
-    }
+  function finish(layers: number) {
+    if (!bed || !name || !readout) return;
+    name.style.clipPath = 'none';
+    bed.classList.add('done');
+    requestAnimationFrame(() => name.classList.remove('hot'));
+    readout.textContent = `Druck fertig · ${layers} Schichten · 0,20 mm · PLA`;
   }
+
+  function print() {
+    if (!bed || !name || !head || !readout) return;
+    const w = name.offsetWidth, h = name.offsetHeight;
+    const layers = Math.round(Math.min(46, Math.max(26, h / 7)));
+    const lh = h / layers;
+    name.style.setProperty('--lh', `${lh}px`);
+    if (reduce) { finish(layers); return; }
+    bed.classList.remove('done');
+    name.classList.add('hot');
+    const D = Math.max(48, 2700 / layers);
+    const t0 = performance.now();
+    name.style.clipPath = `polygon(0 ${h}px, ${w}px ${h}px, ${w}px ${h}px, 0 ${h}px)`;
+    const step = (t: number) => {
+      const e = t - t0;
+      const i = Math.floor(e / D);
+      if (i >= layers) { finish(layers); return; }
+      const p = (e % D) / D;
+      const rtl = i % 2 === 1;
+      const x = rtl ? w * (1 - p) : w * p;
+      const yb = h - i * lh, yt = yb - lh;
+      const a = rtl ? x : 0, b = rtl ? w : x;
+      name.style.clipPath = `polygon(0px ${h}px, ${w}px ${h}px, ${w}px ${yb}px, ${b}px ${yb}px, ${b}px ${yt}px, ${a}px ${yt}px, ${a}px ${yb}px, 0px ${yb}px)`;
+      head.style.transform = `translate(${x}px, ${yt}px)`;
+      readout.innerHTML = `Schicht <b>${pad(i + 1)}</b> / ${layers} · 0,20 mm · PLA · 215 °C`;
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  const go = () => setTimeout(print, 300);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
 </script>
 
 <style>
-  .hero { min-height: 100svh; display: grid; align-items: center; padding: 110px 0 60px; position: relative; overflow: hidden; }
-  .hero::before { content: ''; position: absolute; inset: -20% -10% auto auto; width: 60vw; height: 60vw; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%); pointer-events: none; }
-  .hero-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: clamp(32px, 5vw, 72px); align-items: center; position: relative; }
-  h1 { font-size: clamp(3rem, 8.2vw, 6.6rem); margin: 22px 0 26px; }
-  h1 .line { display: block; }
-  h1 em { font-style: normal; color: var(--accent); }
-  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
-  .avail { margin-top: 28px; font-size: .82rem; color: var(--muted); display: flex; align-items: center; gap: 10px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 0 var(--accent-2); animation: pulse 2.2s infinite; }
+  .hero { padding: clamp(120px, 16vw, 180px) 0 clamp(64px, 9vw, 110px); position: relative; overflow-x: clip; }
+
+  .status {
+    display: flex; flex-wrap: wrap; width: fit-content; max-width: 100%; align-items: center; gap: 8px 12px;
+    padding: 6px 6px 6px 14px; border: 1px solid color-mix(in srgb, var(--accent-2) 45%, var(--line)); border-radius: 22px;
+    background: color-mix(in srgb, var(--accent-2) 10%, var(--bg)); font-size: .98rem; font-weight: 500; color: var(--text);
+    text-decoration: none; transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .status:hover { transform: translateY(-2px); border-color: var(--accent-2); box-shadow: 0 10px 30px -14px var(--accent-2); }
+  .status-text { display: inline-flex; align-items: center; gap: 10px; }
+  .status-cta { background: var(--accent-2); color: var(--bg); font-weight: 600; padding: 7px 14px; border-radius: 16px; white-space: nowrap; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 0 var(--accent-2); animation: pulse 2.2s infinite; flex: none; }
   @keyframes pulse { 70% { box-shadow: 0 0 0 10px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 
-  .chart { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: clamp(16px, 2.4vw, 26px); box-shadow: 0 30px 80px -40px rgba(0,0,0,.6); }
-  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-  .small { font-size: .78rem; }
-  .muted { color: var(--muted); }
-  .toggle { display: inline-flex; background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
-  .toggle button { font: 500 .78rem var(--font-mono); border: 0; background: none; color: var(--muted); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
-  .toggle button[aria-pressed='true'] { background: var(--text); color: var(--bg); }
-  .svg { width: 100%; height: auto; overflow: visible; }
-  .grid { stroke: var(--line); stroke-dasharray: 3 5; }
-  .lane { stroke: var(--line); }
-  .tick { fill: var(--muted); font: 500 21px var(--font-mono); }
-  .price-line { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-linejoin: round; stroke-dasharray: 1; }
-  .job rect { fill: var(--hot); opacity: .9; transition: fill .6s; }
-  .chart[data-mode='opt'] .job rect { fill: var(--accent-2); }
-  .job text { fill: #111; font: 700 20px var(--font-mono); }
-  .chart-foot { display: flex; gap: 32px; margin: 14px 0 12px; }
-  .chart-foot div { display: grid; gap: 2px; }
-  .chart-foot strong { font-size: 1.5rem; font-weight: 600; }
-  .save { color: var(--accent-2); }
-  figcaption { border-top: 1px solid var(--line); padding-top: 10px; }
+  .bed { position: relative; display: block; width: fit-content; max-width: 100%; margin: clamp(22px, 4vw, 36px) 0 6px; }
+  .name { font-family: var(--font-display); font-size: clamp(2.9rem, 9.4vw, 7.6rem); line-height: .92; letter-spacing: -0.045em; font-weight: 700; margin: 0; }
+  .name span { display: block; }
+  .printed {
+    --ink: var(--text);
+    background: repeating-linear-gradient(to bottom, var(--ink) 0, var(--ink) calc(var(--lh, 6px) - 0.8px), color-mix(in srgb, var(--ink) 62%, transparent) calc(var(--lh, 6px) - 0.8px), color-mix(in srgb, var(--ink) 62%, transparent) var(--lh, 6px));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    transition: --ink 1.6s ease;
+  }
+  .printed.hot { --ink: var(--accent); transition: none; }
+  .ghost { position: absolute; inset: 0; color: transparent; -webkit-text-stroke: 1px color-mix(in srgb, var(--muted) 55%, transparent); transition: opacity .8s ease; pointer-events: none; }
+  .bed.done .ghost { opacity: 0; }
+  .head { position: absolute; left: 0; top: 0; width: 30px; height: 40px; margin-left: -15px; margin-top: -40px; pointer-events: none; transition: opacity .5s ease; will-change: transform; }
+  .head svg { width: 100%; height: 100%; overflow: visible; }
+  .tip { filter: drop-shadow(0 0 6px var(--accent)); }
+  .bed.done .head { opacity: 0; visibility: hidden; }
+  .readout { font-size: .8rem; line-height: 1.4; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.4em; }
+  .readout :global(b) { color: var(--accent); font-weight: 500; }
 
-  @media (max-width: 900px) {
-    .hero-grid { grid-template-columns: 1fr; }
-    .hero { min-height: auto; }
+  .lead { margin-top: clamp(22px, 3vw, 30px); max-width: 58ch; }
+  .lead strong { color: var(--text); font-weight: 600; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+  .btn:not(.btn-primary) { background: color-mix(in srgb, var(--bg) 70%, transparent); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dot { animation: none; }
   }
 </style>
