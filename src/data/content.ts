@@ -6,7 +6,7 @@ export const person = {
   role: 'Wirtschaftsingenieur (M.Sc.)',
   claim: 'Produktion × Energie × Daten',
   intro:
-    'Ich verbinde Fertigung, Supply Chain und Datenanalyse: von der Prozessoptimierung bei Stäubli bis zur energieoptimierten Fertigungsplanung am Fraunhofer IAPT.',
+    'Ich verbinde Fertigung, Supply Chain und Datenanalyse: von der Prozessoptimierung bei Stäubli bis zur Planung von 3D-Druckaufträgen nach Strompreis am Fraunhofer IAPT.',
   availability: 'Verfügbar ab Januar 2027',
   location: 'Hamburg',
   email: 'cedric.schwandt@gmail.com',
@@ -18,7 +18,7 @@ export const stats = [
   { value: 47, prefix: '+', suffix: ' %', label: 'Effizienz in einem Montageschritt (Bachelorarbeit, Stäubli)' },
   { value: 20, prefix: '−', suffix: ' %', label: 'manueller Aufwand in der Rechnungsprüfung (Power Automate)' },
   { value: 21, prefix: '', suffix: '', label: 'Prozesse in BPMN 2.0 aufgenommen und analysiert' },
-  { value: 1.6, prefix: 'Ø ', suffix: '', label: 'M.Sc. Wirtschaftsingenieurwesen (bisher)', decimals: 1 },
+  { value: 100, prefix: '~', suffix: '', label: 'Mitglieder im Verein, als Vorstand Finanzen und Recht verantwortet' },
 ];
 
 export type Project = {
@@ -42,13 +42,12 @@ export const projects: Project[] = [
     org: 'Fraunhofer IAPT, Hamburg',
     period: '2026 – 2027',
     problem:
-      'Additive Fertigung ist energieintensiv, Strompreise schwanken im Viertelstundentakt. Klassische Reihenfolgeregeln ignorieren das.',
+      '3D-Drucker brauchen viel Strom, und der Strompreis ändert sich im Tagesverlauf ständig. Wer Aufträge einfach nacheinander abarbeitet, zahlt oft unnötig viel.',
     approach:
-      'Leistungsmessungen an einem realen FFF-Drucker, daraus auftragsspezifische Lastprofile. Ein zeitindiziertes MILP als exakte Referenz und NSGA-II für realistische Instanzgrößen, gespeist mit Day-Ahead-Preisen und PV-Eigenerzeugung.',
+      'Ich messe den Stromverbrauch echter 3D-Drucker je Auftrag und entwickle in Python eine Planung, die Druckaufträge in günstige Zeitfenster legt und eigenen Solarstrom mitnutzt, ohne Liefertermine aus dem Blick zu verlieren.',
     result:
-      'Vergleich gegen die EDD-Regel über Energiekosten, Makespan, Verspätung und Optimalitätslücke. Ergebnisse folgen nach Veröffentlichung (CIRP CMS 2027 geplant).',
-    tags: ['Python', 'MILP', 'NSGA-II', 'pymoo', 'Demand Response'],
-    metric: 'MILP + NSGA-II',
+      'Vergleich mit der üblichen Planung nach Liefertermin: Wie viel Stromkosten lassen sich sparen, und was kostet das an Zeit? Ergebnisse folgen nach der Veröffentlichung.',
+    tags: ['Python', 'Produktionsplanung', 'Energiekosten', 'Demand Response'],
   },
   {
     id: 'staeubli',
@@ -59,7 +58,7 @@ export const projects: Project[] = [
     problem: 'Die Kugelabfüllung in der Montage war manuell, langsam und fehleranfällig.',
     approach:
       'Prozessaufnahme vor Ort, Konstruktion einer neuen Vorrichtung in CAD, Prototypenbau und Test in der Linie. Parallel Materialfluss-Simulation für den Reinraum einer neuen Produktreihe.',
-    result: 'Effizienzsteigerung um 47 % im betrachteten Montageschritt. Bachelorarbeit mit 1,0 bewertet.',
+    result: 'Effizienzsteigerung um 47 % im betrachteten Montageschritt.',
     tags: ['Konstruktion', 'CAD', 'Prozessoptimierung', 'Simulation'],
     metric: '+47 %',
   },
@@ -93,17 +92,17 @@ export const projects: Project[] = [
 export type Station = { period: string; title: string; org: string; text: string; type: 'work' | 'edu' };
 
 export const timeline: Station[] = [
-  { period: '08/2026 – 01/2027', title: 'Masterand', org: 'Fraunhofer IAPT', text: 'Energieoptimierte Ablaufplanung in der additiven Fertigung.', type: 'work' },
+  { period: '08/2026 – 01/2027', title: 'Masterand', org: 'Fraunhofer IAPT', text: 'Stromkosten im 3D-Druck senken: Aufträge dann planen, wenn Strom günstig ist.', type: 'work' },
   { period: '10/2024 – heute', title: 'Werkstudent Procurement Excellence', org: 'Beiersdorf AG', text: 'Digitalization & Insights: Power BI, Reporting-Automatisierung, Risk Management.', type: 'work' },
-  { period: '09/2025 – 01/2026', title: 'Auslandssemester', org: 'Beijing Normal University', text: 'M.Sc. World Economy and China, Ø 91,5/100.', type: 'edu' },
-  { period: '10/2024 – 01/2027', title: 'M.Sc. Wirtschaftsingenieurwesen', org: 'Universität Hamburg · HAW · HSU', text: 'Schwerpunkt Produktentwicklung, bisher Ø 1,6.', type: 'edu' },
+  { period: '09/2025 – 01/2026', title: 'Auslandssemester', org: 'Beijing Normal University', text: 'M.Sc. World Economy and China an einer der zehn besten Universitäten Chinas.', type: 'edu' },
+  { period: '10/2024 – 01/2027', title: 'M.Sc. Wirtschaftsingenieurwesen', org: 'Universität Hamburg · HAW · HSU', text: 'Schwerpunkt Produktentwicklung, Masterarbeit am Fraunhofer IAPT.', type: 'edu' },
   { period: '2023 – 2024', title: 'Bachelorand, Werkstudent, Praktikant', org: 'Stäubli', text: 'Montage-Prototyp (+47 %), Materialfluss-Simulation, Einkaufs-Cockpit, Bestandsprognose.', type: 'work' },
   { period: '04/2021 – heute', title: 'Vorstand & Projektleitung', org: 'Hanseatic Consulting', text: 'Vorstand Finanzen und Recht, Projekte zu Prozessoptimierung und Automatisierung.', type: 'work' },
-  { period: '11/2020 – 04/2024', title: 'B.Sc. Wirtschaftsingenieurwesen', org: 'Universität Hamburg · HAW', text: 'Operations und Supply Chain Management, Bachelorarbeit 1,0.', type: 'edu' },
+  { period: '11/2020 – 04/2024', title: 'B.Sc. Wirtschaftsingenieurwesen', org: 'Universität Hamburg · HAW', text: 'Schwerpunkt Operations und Supply Chain Management, Bachelorarbeit bei Stäubli.', type: 'edu' },
 ];
 
 export const skills = [
-  { group: 'Daten & Optimierung', items: ['Python (pandas, scikit-learn)', 'MILP', 'NSGA-II / pymoo', 'Power BI', 'Statistik & ML'] },
+  { group: 'Daten & Optimierung', items: ['Python (Datenanalyse, Optimierung)', 'Power BI', 'Statistik & Machine Learning', 'Produktionsplanung'] },
   { group: 'Prozesse & Automatisierung', items: ['BPMN 2.0', 'Power Automate', 'Power Apps', 'Visio', 'Six Sigma White Belt'] },
   { group: 'Produktion & Technik', items: ['CAD (Fusion)', 'Fertigungstechnik', 'Additive Fertigung', 'Materialfluss-Simulation'] },
   { group: 'Sprachen', items: ['Deutsch (Muttersprache)', 'Englisch (fließend)'] },
